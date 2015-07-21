@@ -79,6 +79,7 @@ Route::group(['middleware' => 'csrf', 'prefix' => 'api'], function () {
             ['except' => ['create', 'edit', 'update']]
         );
 
+        Route::get('mentors/current_mentor', 'MentorController@current_mentor');
         Route::resource(
             'mentors',
             'MentorController',

@@ -8,6 +8,8 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use App\Mentor;
+use App\Member;
+
 
 class MentorController extends Controller
 {
@@ -78,5 +80,24 @@ class MentorController extends Controller
     public function destroy($id)
     {
         Mentor::destroy($id);
+    }
+    
+    /*
+     * Retrieve the current 'mentor on duty' for the SSE.
+     *
+     * @GET('/mentors/current_mentor')
+     * @Versions({"v1"})
+     * @Request({})
+     * @Response(200, body={"id": 1, "first_name": "John", "last_name": "Doe", "username": "jmp3833", "url": "\\/members\\/1"})
+     *
+     * @return Response
+     */
+    public function current_mentor()
+    {
+        //TODO: Query based on mentor schedule and time of day
+        $mentor_id = 1;
+        $member = Mentor::find($mentor_id)->member;
+
+        return response()->json($member);
     }
 }
