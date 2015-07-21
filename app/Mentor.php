@@ -10,6 +10,14 @@ class Mentor extends Model
     use SoftDeletes;
 
     protected $appends = ['url'];
+    
+    /*
+     * Establishes the One to One relationship with Member.
+     */
+    public function member()
+    {
+        return $this->belongsTo('App\Member');
+    }
 
     public function getUrlAttribute()
     {

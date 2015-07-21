@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
+use App\Mentor;
+
 class MentorController extends Controller
 {
     /**
@@ -16,7 +18,8 @@ class MentorController extends Controller
      */
     public function index()
     {
-        //
+        $mentors = Mentor::all();
+        return response()->json($mentors);
     }
 
     /**
