@@ -30,7 +30,24 @@ class MentorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'member_id' => 'required'
+        ]);
+        
+        $mentor = Mentor::where(
+            ['member_id' => $request->input('member_id')] 
+        );
+
+        if($mentor) {
+            $mentor->delete(); 
+        }
+
+        $mentor = new Mentor();
+        $mentor->member_id = $request->input('member_id');
+
+        $mentor->save();
+
+        return response()->json($mentor);
     }
 
     /**
@@ -41,19 +58,15 @@ class MentorController extends Controller
      */
     public function show($id)
     {
-        //
-    }
+        try {
+            $mentor = Mentor::findOrFail($id);
+            return response()->json($mentor);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @param  int  $id
-     * @return Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
+        } catch (ModelNotFoundException $e) {
+            return new JsonResponse(
+                ['error' => 'not found'], Response::HTTP_NOT_FOUND
+            );
+        }
     }
 
     /**
@@ -64,6 +77,6 @@ class MentorController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Mentor::destroy($id);
     }
 }
