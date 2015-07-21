@@ -10,7 +10,9 @@ use App\Http\Controllers\Controller;
 use App\Mentor;
 use App\Member;
 
-
+/**
+ * @Resource("Mentors", uri="/mentors")
+ */
 class MentorController extends Controller
 {
     /**
