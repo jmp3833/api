@@ -23,26 +23,29 @@ class AgendaController extends Controller
      * Get the collection of agenda items.
      *
      * @Get("/")
-     * @Response(200, body={{"id": 1, "content": "foo", "created_by": "1", "url": "/agenda/1"}})
+     * @Response(200, body={{"id": 1, "body": "foo", "created_by": "1",
+     *                       "url": "/agenda/1"}})
      * @return Response
      */
     public function index()
     {
-        $items = AgendaItem::all();
+        $items = AgendaItem::query();
 
-        return response()->json($items);
+        return response()->json($items->paginate());
     }
 
     /**
      * Delete all current agenda items.
      *
      * @Delete("/")
-     * @Response(200)
+     * @Response(204)
      * @return Response
      */
     public function clear()
     {
         AgendaItem::where('id', '>', 0)->delete();
+
+        return response('', Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -50,9 +53,10 @@ class AgendaController extends Controller
      *
      * @Post("/")
      * @Transaction(
-     *     @Request({"content": "foo"}),
-     *     @Response(200, body={"id": 2, "content": "foo", "created_by": "1", "url": "/agenda/2"}),
-     *     @Response(422, body={"content": {"The content has already been taken."}})
+     *     @Request({"body": "foo"}),
+     *     @Response(201, body={"id": 2, "body": "foo", "created_by": "1",
+     *                          "url": "/agenda/2"}),
+     *     @Response(422, body={"body": {"The body has already been taken."}})
      * )
      * @param  Request  $request
      * @return Response
@@ -60,17 +64,17 @@ class AgendaController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'content' => 'required|unique:agenda_items,content',
+            'body' => 'required|unique:agenda_items,body',
         ]);
 
         $agendaItem = new AgendaItem();
 
-        $agendaItem->content = $request->input('content');
-        $agendaItem->created_by = 1;
+        $agendaItem->body = $request->input('body');
+        $agendaItem->created_by = $request->member->id;
 
         $agendaItem->save();
 
-        return response()->json($agendaItem);
+        return new JsonResponse($agendaItem, Response::HTTP_CREATED);
     }
 
     /**
@@ -78,7 +82,8 @@ class AgendaController extends Controller
      *
      * @Get("/{id}")
      * @Transaction(
-     *     @Response(200, body={"id": 1, "content": "foo", "created_by": "1", "url": "/agenda/2"}),
+     *     @Response(200, body={"id": 1, "body": "foo", "edited_by_url": "",
+     *                          "author_url": "/members/1", "url": "/agenda/2"}),
      *     @Response(404, body={"error": "not found"})
      * )
      * @param  int  $id
@@ -102,8 +107,8 @@ class AgendaController extends Controller
      *
      * @Put("/{id}")
      * @Transaction(
-     *     @Request({"content": "bar"}),
-     *     @Response(200, body={"id": 1, "content": "bar", "created_by": "1", "url": "/agenda/2"}),
+     *     @Request({"body": "bar"}),
+     *     @Response(200, body={"id": 1, "body": "bar", "created_by": "1", "url": "/agenda/2"}),
      *     @Response(404, body={"error": "not found"})
      * )
      * @param  Request  $request
@@ -113,13 +118,13 @@ class AgendaController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'content' => 'required',
+            'body' => 'required',
         ]);
 
         $agendaItem = AgendaItem::findOrFail($id);
 
-        $agendaItem->content = $request->input('content', $agendaItem->content);
-        $agendaItem->updated_by = 1;
+        $agendaItem->body = $request->input('body', $agendaItem->body);
+        $agendaItem->updated_by = $request->member->id;
 
         $agendaItem->save();
 
@@ -130,12 +135,14 @@ class AgendaController extends Controller
      * Remove the specified agenda item from storage.
      *
      * @Delete("/{id}")
-     * @Response(200)
+     * @Response(204)
      * @param  int  $id
      * @return Response
      */
     public function destroy($id)
     {
         AgendaItem::destroy($id);
+
+        return response('', Response::HTTP_NO_CONTENT);
     }
 }

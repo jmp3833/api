@@ -2,8 +2,6 @@
 
 use Illuminate\Database\Seeder;
 
-use App\Lingo;
-
 class LingoTableSeeder extends Seeder
 {
     /**
@@ -13,13 +11,8 @@ class LingoTableSeeder extends Seeder
      */
     public function run()
     {
-        $lingo = new Lingo();
-
-        $lingo->phrase = '261';
-        $lingo->definition = '261 is the course number for Introduction to ' .
-            'Software Engineering, the SE course required by many programs ' .
-            'here at RIT.';
-
-        $lingo->save();
+        factory('App\Lingo', 50)->create()->each(function ($lingo) {
+            $lingo->save();
+        });
     }
 }

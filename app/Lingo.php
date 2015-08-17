@@ -12,14 +12,16 @@ class Lingo extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ['url'];
+    protected $dateFormat = \DateTime::ISO8601;
+
+    protected $appends = [
+        'url'
+    ];
 
     protected $table = 'lingo';
 
     protected $hidden = [
-        'created_at',
         'deleted_at',
-        'updated_at',
     ];
 
     protected $dates = [
@@ -33,6 +35,6 @@ class Lingo extends Model
 
     public function getUrlAttribute()
     {
-        return '/lingo/' . $this->id;
+        return route('api.v1.lingo.show', ['id' => $this->id]);
     }
 }

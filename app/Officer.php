@@ -12,12 +12,22 @@ class Officer extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ['position', 'url'];
+    protected $dateFormat = \DateTime::ISO8601;
+
+    protected $appends = [
+        'email',
+        'member_url',
+        'position',
+        'term_url',
+        'url',
+    ];
 
     protected $hidden = [
-        'created_at',
         'deleted_at',
-        'updated_at',
+        'member',
+        'member_id',
+        'term',
+        'term_id',
     ];
 
     protected $dates = [
@@ -44,13 +54,28 @@ class Officer extends Model
         return $this->belongsTo('App\Term');
     }
 
+    public function getEmailAttribute()
+    {
+        return $this->position . '@' . config('app.email_domain');
+    }
+
+    public function getMemberUrlAttribute()
+    {
+        return $this->member->url;
+    }
+
     public function getPositionAttribute()
     {
         return str_replace(' ', '_', strtolower($this->title));
     }
 
+    public function getTermUrlAttribute()
+    {
+        return $this->term->url;
+    }
+
     public function getUrlAttribute()
     {
-        return '/officers/' . $this->id;
+        return route('api.v1.officers.show', ['id' => $this->id]);
     }
 }

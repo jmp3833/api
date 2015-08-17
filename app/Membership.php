@@ -12,17 +12,28 @@ class Membership extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ['url'];
+    protected $dateFormat = \DateTime::ISO8601;
+
+    protected $appends = [
+        'member_url',
+        'term_url',
+        'url',
+    ];
 
     protected $hidden = [
-        'member_id',
-        'created_at',
         'deleted_at',
-        'updated_at',
+        'member',
+        'member_id',
+        'term',
+        'term_id',
     ];
 
     protected $dates = [
         'deleted_at',
+    ];
+
+    protected $fillable = [
+        'reason',
     ];
 
     /**
@@ -41,8 +52,18 @@ class Membership extends Model
         return $this->belongsTo('App\Term');
     }
 
+    public function getMemberUrlAttribute()
+    {
+        return $this->member->url;
+    }
+
+    public function getTermUrlAttribute()
+    {
+        return $this->term->url;
+    }
+
     public function getUrlAttribute()
     {
-        return '/memberships/' . $this->id;
-    }   
+        return route('api.v1.memberships.show', ['id' => $this->id]);
+    }
 }

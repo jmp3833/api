@@ -2,8 +2,6 @@
 
 use Illuminate\Database\Seeder;
 
-use App\Tip;
-
 class TipTableSeeder extends Seeder
 {
     /**
@@ -13,13 +11,8 @@ class TipTableSeeder extends Seeder
      */
     public function run()
     {
-        $tip = new Tip();
-
-        $tip->content = 'Looking for exam resources? Besides our review ' . 
-            'session (which are fantabulous), we also have a test cabinet in ' .
-            'the lab (GOL-1670)!';
-        $tip->created_by = 1;
-
-        $tip->save();
+        factory('App\Tip', 50)->create()->each(function ($tip) {
+            $tip->save();
+        });
     }
 }

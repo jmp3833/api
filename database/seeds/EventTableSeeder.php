@@ -1,8 +1,7 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-
-use App\Event;
 
 class EventTableSeeder extends Seeder
 {
@@ -13,8 +12,8 @@ class EventTableSeeder extends Seeder
      */
     public function run()
     {
-        $event = new Event();
-
-        $event->save();
+        factory('App\Event', 50)->create()->each(function ($event) {
+            $event->save();
+        });
     }
 }

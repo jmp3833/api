@@ -14,27 +14,42 @@
 Route::get('/go/{go_link}', 'LinkController@resolveLink');
 
 Route::group(['middleware' => 'csrf', 'prefix' => 'api'], function () {
-    Route::get('/', function() {
+    Route::get('/', ['as' => 'api', function () {
         return response()->json([
-            'current_version' => '/v1',
+            'v1_url' => route('api.v1')
         ]);
-    });
+    }]);
 
     Route::group(['prefix' => 'v1'], function () {
-        Route::get('/', function() {
+        Route::get('/', ['as' => 'api.v1', function () {
             return response()->json([
-                'agenda_url' => '/agenda',
-                'groups_url' => '/groups',
-                'lingo_url' => '/lingo',
-                'members_url' => '/members',
-                'memberships_url' => '/memberships',
-                'mentors_url' => '/mentors',
-                'officers_url' => '/officers',
-                'quotes_url' => '/quotes',
-                'terms_url' => '/terms',
-                'tips_url' => '/tips',
+                'agenda_url' => route('api.v1.agenda.index'),
+                'events_url' => route('api.v1.events.index'),
+                'groups_url' => route('api.v1.groups.index'),
+                'lingo_url' => route('api.v1.lingo.index'),
+                'members_url' => route('api.v1.members.index'),
+                'memberships_url' => route('api.v1.memberships.index'),
+                'mentors_url' => route('api.v1.mentors.index'),
+                'officers_url' => route('api.v1.officers.index'),
+                'quotes_url' => route('api.v1.quotes.index'),
+                'statistics_members_url' => route('api.v1.statistics.members'),
+                'tasks_url' => route('api.v1.tasks.index'),
+                'terms_url' => route('api.v1.terms.index'),
+                'tips_url' => route('api.v1.tips.index'),
             ]);
-        });
+        }]);
+
+        // Authentication routes
+        Route::get(
+            'auth/google', 'Auth\AuthController@redirectToProvider'
+        );
+        Route::get(
+            'auth/google/callback',
+            'Auth\AuthController@handleProviderCallback'
+        );
+        Route::get(
+            'auth/token', 'Auth\AuthController@getToken'
+        );
 
         Route::delete('/agenda', 'AgendaController@clear');
         Route::resource(
@@ -95,6 +110,15 @@ Route::group(['middleware' => 'csrf', 'prefix' => 'api'], function () {
         Route::resource(
             'quotes',
             'QuoteController',
+            ['except' => ['create', 'edit']]
+        );
+
+        // FIXME: naming the statistics routes is hardcoded given route() issue
+        Route::get('statistics/members', ['uses' => 'StatisticsController@getMembers', 'as' => 'api.v1.statistics.members']);
+
+        Route::resource(
+            'tasks',
+            'TasksController',
             ['except' => ['create', 'edit']]
         );
 

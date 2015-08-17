@@ -11,29 +11,44 @@ things as events, members, memberships, mentors, officers, and so on.
 
 ## Getting Started
 
+On a Mac or Linux system? Check out [this](https://youtu.be/iF3erw9RVlg) video for a short screencast to speed things up.
+
 To get started, follow these steps:
 
 1. Change directory into the root of the repository.
 1. Execute `composer install` (this assumes you have installed Composer as `composer` in your `PATH`).
-1. Make a copy of `.env.example` and save it as `.env`.
-1. Init app storage (sessions, cache, etc.) and the database: `./bootstrap/init_storage.sh`
-1. Generate a random app key: `php artisan key:generate`.
-1. Execute `php artisan migrate:refresh --seed`.
-1. Execute `php -S localhost:8000 server.php`.  _Note_: If you are having issues
-   running the [api-client][api-client] locally, run `php -S 0.0.0.0:8000
-   server.php` instead.
+1. Init your environment (sessions, cache, etc.) and the database: `./bootstrap/init.php`
+1. Execute `php -S localhost:8000 server.php`.
+
+_Note_: If you are having issues running the [api-client][api-client] locally, run `php -S 0.0.0.0:8000 server.php` instead.
 
 This will initialize your development database with seed data and start the
 development server locally on port 8000.
+
+## Authentication
+
+The API uses the Google OAuth 2.0 service for authentication. This is a workaround
+that allows us to remove the need to interact directly with Shibboleth. In order to
+test the authentication service, you need to generate a client id, secret, and insert
+a callback URL into `config/services.php` under the `google` key.
+
+To generate the necessary client id and secret, head to the [Google Developer Console](https://console.developers.google.com/project), create a project, select 'APIs & Auth > Credentials', and
+finally click 'Create a new Client ID'. Make sure you enter your *full* callback URL,
+which is `http[s]://{host}/api/v1/auth/google/callback`.
+
+*Note*: To prevent unauthorized errors, you **must** also enable the Google+ API!
 
 ## Endpoints
 
 The endpoints are controlled by Laravel routes. To look at the routing setup,
 open up the router definition in `app/Http/routes.php`.
 
-All `Controllers` within this project are RESTful controllers (as defined by
+Most `Controllers` within this project are RESTful controllers (as defined by
 Laravel, denoted by the `Route::resource` syntax in `routes.php`). The specific
-mapping for this type of controller can be found in Laravel's [documentation](http://laravel.com/docs/5.1/controllers#restful-resource-controllers).
+mapping for this type of controller can be found in Laravel's [documentation](http://laravel.com/docs/5.1/controllers#restful-resource-controllers). For the most part, you probably
+want a resource controller, unless doing something more specialized such as
+authentication or statistics. In that case, you should take a look at using the
+`Route::controller` syntax found [here](http://laravel.com/docs/5.1/controllers#implicit-controllers).
 
 The API root of the application is currently set to `/api/v1`. This route is
 also controlled by `app/Http/routes.php`, the definition of which is controlled

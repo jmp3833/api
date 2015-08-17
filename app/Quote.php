@@ -12,13 +12,15 @@ class Quote extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ['url'];
+    protected $dateFormat = \DateTime::ISO8601;
+
+    protected $appends = [
+        'url'
+    ];
 
     protected $hidden = [
         'member_id',
-        'created_at',
         'deleted_at',
-        'updated_at',
     ];
 
     protected $dates = [
@@ -26,7 +28,9 @@ class Quote extends Model
     ];
 
     protected $fillable = [
-        'content',
+        'approved',
+        'body',
+        'description',
     ];
 
     public function member()
@@ -34,8 +38,13 @@ class Quote extends Model
         return $this->belongsTo('App\Member');
     }
 
+    public function tags()
+    {
+        return $this->hasMany('App\Tag');
+    }
+
     public function getUrlAttribute()
     {
-        return '/quotes/' . $this->id;
+        return route('api.v1.quotes.show', ['id' => $this->id]);
     }
 }

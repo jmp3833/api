@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 use App\Term;
@@ -15,13 +16,13 @@ class TermTableSeeder extends Seeder
     {
         foreach(range(2015, 2030) as $year) {
             DB::table('terms')->insert([
-                'name' => 'Fall',
-                'year' => $year
+                'start_date' => Carbon::create($year, 8, 20)->toIso8601String(),
+                'end_date' => Carbon::create($year, 12, 31)->toIso8601String()
             ]);
 
             DB::table('terms')->insert([
-                'name' => 'Spring',
-                'year' => $year + 1
+                'start_date' => Carbon::create($year + 1, 1, 1)->toIso8601String(),
+                'end_date' => Carbon::create($year + 1, 5, 31)->toIso8601String()
             ]);
         }
     }

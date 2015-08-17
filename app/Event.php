@@ -9,20 +9,47 @@ class Event extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ['url'];
+    protected $dateFormat = \DateTime::ISO8601;
 
-    protected $hidden = [
-        'created_at',
-        'deleted_at',
-        'updated_at',
+    protected $appends = [
+        'group_url',
+        'url',
     ];
 
     protected $dates = [
         'deleted_at',
     ];
 
+    protected $fillable = [
+        'description',
+        'end_date',
+        'featured',
+        'image',
+        'location',
+        'name',
+        'recurrence',
+        'short_description',
+        'short_name',
+        'start_date',
+    ];
+
+    protected $hidden = [
+        'deleted_at',
+        'group',
+    ];
+
+    public function group()
+    {
+        return $this->belongsTo('App\Group');
+    }
+
+    public function getGroupUrlAttribute()
+    {
+        return $this->group->url;
+    }
+
     public function getUrlAttribute()
     {
-        return "/events/" . $this->id;
+        return route('api.v1.events.show', ['id' => $this->id]);
     }
 }

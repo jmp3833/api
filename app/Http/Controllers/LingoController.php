@@ -12,25 +12,46 @@ use App\Http\Controllers\Controller;
 use App\Lingo;
 
 /**
+ * Controls the collection of lingo.
+ *
  * @Resource("Lingo", uri="/lingo")
+ * @Versions({"v1"})
  */
 class LingoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get the collection of lingo.
      *
+     * @Get("/{?phrase}")
+     * @Parameter("phrase", type="string", description="The phrase filter.", default="")
+     * @Response(200, body={{"id": 1, "phrase": "261", "definition": "...", "url": "/lingo/1"}})
+     * @param  Request  $request
      * @return Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $lingo = Lingo::all();
+        $queryParameters = array_filter(
+            $request->only(['phrase'])
+        );
 
-        return response()->json($lingo);
+        $lingo = Lingo::query();
+
+        if (array_key_exists('phrase', $queryParameters)) {
+            $lingo = $lingo->where(['phrase' => $queryParameters['phrase']]);
+        }
+
+        return response()->json($lingo->paginate());
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created lingo in storage.
      *
+     * @Post("/")
+     * @Transaction(
+     *     @Request({"phrase": "361", "definition": "..."}),
+     *     @Response(201, body={"id": 2, "phrase": "361", "definition": "...", "url": "/lingo/2"}),
+     *     @Response(422, body={"phrase": {"The phrase has already been taken."}})
+     * )
      * @param  Request  $request
      * @return Response
      */
@@ -47,12 +68,18 @@ class LingoController extends Controller
         $lingo->definition = $request->input('definition');
 
         $lingo->save();
-        return response()->json($lingo);
+
+        return new JsonResponse($lingo, Response::HTTP_CREATED);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified lingo.
      *
+     * @Get("/{id}")
+     * @Transaction(
+     *     @Response(200, body={"id": 1, "phrase": "261", "definition": "...", "url": "/lingo/1"}),
+     *     @Response(404, body={"error": "not found"})
+     * )
      * @param  int  $id
      * @return Response
      */
@@ -70,8 +97,14 @@ class LingoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified lingo in storage.
      *
+     * @Put("/{id}")
+     * @Transaction(
+     *     @Request({"definition": "new"}),
+     *     @Response(200, body={"id": 1, "phrase": "261", "definition": "new", "url": "/lingo/1"}),
+     *     @Response(404, body={"error": "not found"})
+     * )
      * @param  Request  $request
      * @param  int  $id
      * @return Response
@@ -88,13 +121,17 @@ class LingoController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified lingo from storage.
      *
+     * @Delete("/{id}")
+     * @Response(204)
      * @param  int  $id
      * @return Response
      */
     public function destroy($id)
     {
         Lingo::destroy($id);
+
+        return response('', Response::HTTP_NO_CONTENT);
     }
 }

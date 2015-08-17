@@ -2,64 +2,152 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use JWTAuth;
+
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use App\Member;
+use App\Providers\GoogleRitProvider;
+use App\Role;
 
 class AuthController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Registration & Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users, as well as the
-    | authentication of existing users. By default, this controller uses
-    | a simple trait to add these behaviors. Why don't you explore it?
-    |
-    */
-
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins;
-
-    /**
-     * Create a new authentication controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function getToken(Request $request)
     {
-        $this->middleware('guest', ['except' => 'getLogout']);
+        $this->validate($request, [
+            'id' => 'required',
+            'provider' => 'required',
+            'secret' => 'required',
+        ]);
+
+        $queryParameters = $request->only(['id', 'provider', 'secret']);
+
+        $id = $queryParameters['id'];
+        $provider = $queryParameters['provider'];
+        $secret = $queryParameters['secret'];
+
+        if (!(in_array($secret, config('auth.secrets')))) {
+            return new JsonResponse(
+                ['error' => 'invalid secret'], Response::HTTP_FORBIDDEN
+            );
+        }
+
+        $member = Member::whereHas(
+            'externalProfiles', function ($query) use ($id, $provider) {
+                $query->where('identifier', $id);
+                $query->where('provider', $provider);
+            }
+        );
+
+        try {
+            $member = $member->firstOrFail();
+
+            $token = JWTAuth::fromUser(
+                $member,
+                [
+                    'level' => config('auth.levels.low'),
+                    'member' => $member,
+                ]
+            );
+
+            return response()->json(['token' => $token]);
+        } catch (ModelNotFoundException $e) {
+            return new JsonResponse(
+                ['error' => 'not found'], Response::HTTP_NOT_FOUND
+            );
+        }
     }
 
     /**
-     * Get a validator for an incoming registration request.
+     * Redirect the user to the GitHub authentication page.
      *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @return Response
      */
-    protected function validator(array $data)
+    public function redirectToProvider(Request $request)
     {
-        return Validator::make($data, [
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|confirmed|min:6',
-        ]);
+        $callback = $request->input('callback');
+
+        $provider = new GoogleRitProvider(
+            $request,
+            $callback
+        );
+
+        $provider->scopes(
+            ['email', 'profile']
+        );
+
+        return $provider->redirect();
     }
 
     /**
-     * Create a new user instance after a valid registration.
+     * Obtain the user information from GitHub.
      *
-     * @param  array  $data
-     * @return User
+     * @return Response
      */
-    protected function create(array $data)
+    public function handleProviderCallback(Request $request)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
+        // Used for development purposes. Hit /auth/google/callback
+        // to get a dummy JWT for local use.
+        if (\App::environment('local')) {
+            $member = Member::findOrFail(1);
+
+            if (!($member->hasRole('member'))) {
+                $member->attachRole(
+                    Role::where('name', 'member')->firstOrFail()
+                );
+            }
+
+            $token = JWTAuth::fromUser(
+                $member,
+                [
+                    'level' => config('auth.levels.high'),
+                    'member' => $member,
+                ]
+            );
+
+            return response()->json($token);
+        }
+
+        $provider = new GoogleRitProvider(
+            $request
+        );
+
+        $user = $provider->user();
+        if (array_get($user->user, 'domain', '') != 'g.rit.edu') {
+            return new JsonResponse(
+                ['error' => 'domain user not authorized'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
+        $member = Member::firstOrNew([
+            'email' => $user->email
         ]);
+
+        $member->first_name = $user->user['name']['givenName'];
+        $member->last_name= $user->user['name']['familyName'];
+
+        $member->save();
+
+        if (!($member->hasRole('member'))) {
+            $member->attachRole(Role::where('name', 'member')->firstOrFail());
+        }
+
+        $token = JWTAuth::fromUser(
+            $member,
+            [
+                'level' => config('auth.levels.high'),
+                'member' => $member,
+            ]
+        );
+
+        if ($callback = $provider->getCallback()) {
+            return redirect($callback . '?token=' . $token);
+        } else {
+            return response()->json(['token' => $token]);
+        }
     }
 }

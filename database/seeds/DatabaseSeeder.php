@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
         $this->call(GroupTableSeeder::class);
         $this->call(AgendaItemTableSeeder::class);
         $this->call(MentorTableSeeder::class);
+        $this->call(RolesTableSeeder::class);
+        $this->call(TaskTableSeeder::class);
 
         Model::reguard();
     }

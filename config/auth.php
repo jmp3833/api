@@ -19,6 +19,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Authentication Levels
+    |--------------------------------------------------------------------------
+    |
+    | There are various levels of authentication that the API will accept. For
+    | example, logging in via Google authentication grants the highest level
+    | whereas issuing commands from slack has a much lower level.
+    |
+    */
+    'levels' => [
+        'high' => 1000,
+        'low' => 100,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Authentication Model
     |--------------------------------------------------------------------------
     |
@@ -28,7 +43,34 @@ return [
     |
     */
 
-    'model' => App\User::class,
+    'model' => App\Member::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Secrets
+    |--------------------------------------------------------------------------
+    |
+    | Secrets are for trusted services to authenticate for the /auth/token
+    | endpoint.
+    |
+    */
+    'secrets' => [
+        'SUPER SECRET',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Roles
+    |--------------------------------------------------------------------------
+    |
+    | There are various roles that can be used to restrict access to methods.
+    | This configuration option defines which roles get access to all methods
+    | by default.
+    |
+    */
+    'super_roles' => [
+        'admin'
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -41,7 +83,7 @@ return [
     |
     */
 
-    'table' => 'users',
+    'table' => 'members',
 
     /*
     |--------------------------------------------------------------------------

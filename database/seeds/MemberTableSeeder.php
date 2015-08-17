@@ -2,8 +2,6 @@
 
 use Illuminate\Database\Seeder;
 
-use App\Member;
-
 class MemberTableSeeder extends Seeder
 {
     /**
@@ -13,12 +11,9 @@ class MemberTableSeeder extends Seeder
      */
     public function run()
     {
-        $member = new Member();
-
-        $member->first_name = 'John';
-        $member->last_name = 'Doe';
-        $member->username = 'jxd1234';
-
-        $member->save();
+        factory('App\Member', 50)->create()->each(function ($member) {
+            $member->externalProfiles()
+                ->save(factory('App\ExternalProfile')->make());
+        });
     }
 }

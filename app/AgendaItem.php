@@ -9,7 +9,10 @@ class AgendaItem extends Model
 {
     use SoftDeletes;
 
+    protected $dateFormat = \DateTime::ISO8601;
+
     protected $appends = [
+        'group_url',
         'url',
     ];
 
@@ -18,28 +21,26 @@ class AgendaItem extends Model
     ];
 
     protected $fillable = [
-        'item',
+        'body',
     ];
 
     protected $hidden = [
-        'created_at',
+        'group',
         'deleted_at',
-        'updated_at',
-        'updated_by',
     ];
 
-    public function author()
+    public function group()
     {
-        return $this->belongsTo('App\Member', 'created_by');
+        return $this->belongsTo('App\Group');
     }
 
-    public function edited_by()
+    public function getGroupUrlAttribute()
     {
-        return $this->belongsTo('App\Member', 'updated_by');
+        return $this->group->url;
     }
 
     public function getUrlAttribute()
     {
-        return '/agenda/' . $this->id;
+        return route('api.v1.agenda.show', ['id' => $this->id]);
     }
 }

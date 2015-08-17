@@ -9,6 +9,8 @@ class Link extends Model
 {
     use SoftDeletes;
 
+    protected $dateFormat = \DateTime::ISO8601;
+
     protected $dates = [
         'deleted_at',
     ];
@@ -19,18 +21,22 @@ class Link extends Model
     ];
 
     protected $hidden = [
-        'created_at',
         'deleted_at',
-        'updated_at',
+        'member',
     ];
 
-    public function creator()
+    public function member()
     {
         return $this->belongsTo('App\Member');
     }
 
+    public function getMemberUrlAttribute()
+    {
+        return $this->member->url;
+    }
+
     public function getUrlAttribute()
     {
-        return '/links/' . $this->id;
+        return route('api.v1.links.show', ['id' => $this->id]);
     }
 }
