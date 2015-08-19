@@ -65,6 +65,12 @@ $factory->define(App\Member::class, function (Faker\Generator $faker) {
     ];
 });
 
+$factory->define(App\Mentor::class, function (Faker\Generator $faker) {
+    return [
+        'member_id' => $faker->numberBetween(1, 50),
+    ];
+});
+
 $factory->define(App\Officer::class, function (Faker\Generator $faker) {
     return [
         'member_id' => $faker->numberBetween(1, 50),

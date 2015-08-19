@@ -9,9 +9,6 @@ class Mentor extends Model
 {
     use SoftDeletes;
 
-    /*
-     * Establishes the One to One relationship with Member.
-     */
     protected $dateFormat = \DateTime::ISO8601;
 
     protected $appends = [
@@ -20,9 +17,22 @@ class Mentor extends Model
     ];
 
     protected $hidden = [
+        'deleted_at',
         'member',
     ];
+    
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'deleted_at',
+    ];
 
+    /*
+     * Establishes the One to One relationship with Member.
+     */
     public function member()
     {
         return $this->belongsTo('App\Member');
